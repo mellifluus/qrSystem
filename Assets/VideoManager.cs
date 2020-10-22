@@ -1,7 +1,9 @@
 ﻿using UnityEngine;
+using System;
 using System.IO;
 using System.Linq;
-using System.Collections;
+using System.Text.RegularExpressions;
+using System.Collections.Generic;
 using RenderHeads.Media.AVProVideo;
 
 public class VideoManager : MonoBehaviour
@@ -13,7 +15,9 @@ public class VideoManager : MonoBehaviour
 
     #pragma warning restore 649
 
-    private MediaPlayer[] videos;
+    private Regex fileNameRegex = new Regex(@"^\d+_[a-z0-9\s]+\.(?:mp4|avi|mov|webm|mkv)$", RegexOptions.IgnoreCase);
+    private List<MediaPlayer> videos = new List<MediaPlayer>();
+    public List<int> qrValues = new List<int>();
     private BarcodeScanner scanner;
     private int currentlyPlaying = 0;
 
@@ -30,19 +34,24 @@ public class VideoManager : MonoBehaviour
     }
 
     private void initVideos()
-    {
-        string[] videoNames = (from file in new DirectoryInfo(Application.streamingAssetsPath).GetFiles("*.mp4") select file.Name).ToArray();
+    {  
+        List<string> fileNames = (from file in new DirectoryInfo(Application.streamingAssetsPath).GetFiles() select file.Name).ToList();
 
-        videos = new MediaPlayer[videoNames.Length];
-
-        for(int i = 0; i < videoNames.Length; i++)
+        for(int i = 0; i < fileNames.Count; i++)
         {
-            GameObject currentObject = Instantiate(videoPrefab, gameObject.transform);
-            MediaPlayer currentPlayer = currentObject.GetComponent<MediaPlayer>();
-            currentObject.name = "VideoPlayer_" + i.ToString("00");
-            currentPlayer.Events.AddListener(gameObject.GetComponent<VideoEventManager>().OnVideoEvent);
-            currentPlayer.OpenVideoFromFile(MediaPlayer.FileLocation.RelativeToStreamingAssetsFolder, videoNames[i], false);
-            videos[i] = currentPlayer; 
+            if(fileNameRegex.IsMatch(fileNames[i]))
+            {
+                if(Int32.TryParse(fileNames[i].Split('_')[0], out int qrValue))
+                {
+                    GameObject currentObject = Instantiate(videoPrefab, gameObject.transform);
+                    MediaPlayer currentPlayer = currentObject.GetComponent<MediaPlayer>();
+                    currentObject.name = "VideoPlayer_" + i.ToString("00");
+                    currentPlayer.Events.AddListener(gameObject.GetComponent<VideoEventManager>().OnVideoEvent);
+                    currentPlayer.OpenVideoFromFile(MediaPlayer.FileLocation.RelativeToStreamingAssetsFolder, fileNames[i], false);
+                    qrValues.Add(qrValue);
+                    videos.Add(currentPlayer);
+                }       
+            } 
         }
     }
 
