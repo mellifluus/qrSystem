@@ -16,10 +16,9 @@ public class VideoManager : MonoBehaviour
     #pragma warning restore 649
 
     private Regex fileNameRegex = new Regex(@"^\d+_[a-z0-9\s]+\.(?:mp4|avi|mov|webm|mkv)$", RegexOptions.IgnoreCase);
-    private List<MediaPlayer> videos = new List<MediaPlayer>();
-    public List<int> qrValues = new List<int>();
+    private Dictionary<int, MediaPlayer> videos = new Dictionary<int, MediaPlayer>();
+    private int currentlyPlaying, idleQR;
     private BarcodeScanner scanner;
-    private int currentlyPlaying = 0;
 
     private void Awake() 
     {
@@ -29,7 +28,7 @@ public class VideoManager : MonoBehaviour
 
     private void Update() 
     {
-        if(currentlyPlaying != scanner.currentQR && scanner.currentQR != 0)
+        if(currentlyPlaying != scanner.currentQR && scanner.currentQR != idleQR)
             swapVideos(currentlyPlaying, scanner.currentQR);
     }
 
@@ -41,15 +40,23 @@ public class VideoManager : MonoBehaviour
         {
             if(fileNameRegex.IsMatch(fileNames[i]))
             {
-                if(Int32.TryParse(fileNames[i].Split('_')[0], out int qrValue))
+                List<string> tmpSplit = fileNames[i].Split('_').ToList();
+                if(Int32.TryParse(tmpSplit[0], out int qrValue))
                 {
                     GameObject currentObject = Instantiate(videoPrefab, gameObject.transform);
                     MediaPlayer currentPlayer = currentObject.GetComponent<MediaPlayer>();
-                    currentObject.name = "VideoPlayer_" + i.ToString("00");
+
+                    if(videos.Count == 0)
+                    {
+                        currentPlayer.isFirst = true;
+                        idleQR = qrValue;
+                        currentlyPlaying = idleQR;
+                    }
+
+                    currentObject.name = "VideoPlayer_" + tmpSplit[1];
                     currentPlayer.Events.AddListener(gameObject.GetComponent<VideoEventManager>().OnVideoEvent);
                     currentPlayer.OpenVideoFromFile(MediaPlayer.FileLocation.RelativeToStreamingAssetsFolder, fileNames[i], false);
-                    qrValues.Add(qrValue);
-                    videos.Add(currentPlayer);
+                    videos.Add(qrValue, currentPlayer);
                 }       
             } 
         }

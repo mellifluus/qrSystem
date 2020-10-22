@@ -14,7 +14,7 @@ public class VideoEventManager : MonoBehaviour
         switch(et)
         {
             case MediaPlayerEvent.EventType.FirstFrameReady:
-                if(mp.gameObject.name == "VideoPlayer_00")
+                if(mp.isFirst)
                 {
                     mp.Control.SetLooping(true);
                     mp.Play();
