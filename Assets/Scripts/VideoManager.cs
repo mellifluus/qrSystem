@@ -25,6 +25,7 @@ public class VideoManager : MonoBehaviour
     private void Awake() 
     {
         scanner = GameObject.Find("BarcodeScanner").GetComponent<BarcodeScanner>();
+        Cursor.visible = false;
         initVideos(); 
         debugLoaded();
     }
