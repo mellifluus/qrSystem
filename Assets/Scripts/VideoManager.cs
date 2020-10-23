@@ -19,6 +19,7 @@ public class VideoManager : MonoBehaviour
     private Regex loopRegex = new Regex(@"^loop_[a-z0-9\s]+\.(?:mp4|avi|mov|webm|mkv)$", RegexOptions.IgnoreCase);
     private Dictionary<int, MediaPlayer> videos = new Dictionary<int, MediaPlayer>();
     private int currentlyPlaying = -1;
+    private bool loopMode = false;
     private BarcodeScanner scanner;
 
     private void Awake() 
@@ -30,7 +31,8 @@ public class VideoManager : MonoBehaviour
 
     private void Update() 
     {
-        if(currentlyPlaying != scanner.currentQR && scanner.currentQR != -1)
+        // if(currentlyPlaying != scanner.currentQR && scanner.currentQR != -1)
+        if(currentlyPlaying != scanner.currentQR)
             swapVideos(currentlyPlaying, scanner.currentQR);
     }
 
@@ -49,9 +51,13 @@ public class VideoManager : MonoBehaviour
                 currentObject.name = "Loop_" + file.Split('_')[1];
                 currentPlayer.Events.AddListener(gameObject.GetComponent<VideoEventManager>().OnVideoEvent);
                 currentPlayer.OpenVideoFromFile(MediaPlayer.FileLocation.RelativeToStreamingAssetsFolder, file, true);
+                loopMode = true;
                 break;
             }
         }
+
+        if(!loopMode)
+            videos.Add(-1, null);
 
         for(int i = 0; i < fileNames.Count; i++)
         {
@@ -91,10 +97,16 @@ public class VideoManager : MonoBehaviour
     {
         if(videos.TryGetValue(oldVideo, out MediaPlayer oldM) && videos.TryGetValue(newVideo, out MediaPlayer newM))
         {
-            newM.gameObject.SetActive(true);
-            oldM.Rewind(true);
-            oldM.gameObject.SetActive(false);
-            newM.Play();
+            if(oldM != null)
+            {
+                oldM.Rewind(true);
+                oldM.gameObject.SetActive(false);
+            }
+            if(newM != null)
+            {
+                newM.gameObject.SetActive(true); 
+                newM.Play();  
+            }
             currentlyPlaying = newVideo;   
         }
         else
@@ -110,7 +122,8 @@ public class VideoManager : MonoBehaviour
         {
             if(t.Key == -1)
             {
-                Debug.LogWarning("IDLE: " + t.Value.gameObject.name.Split('_')[1]);
+                if(t.Value != null)
+                    Debug.LogWarning("IDLE: " + t.Value.gameObject.name.Split('_')[1]);
             }
             else
             {

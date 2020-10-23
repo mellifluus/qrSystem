@@ -5,42 +5,33 @@ using Microsoft.Win32;
 
 public class FindScannerInCOMPorts : MonoBehaviour
 {
-
     #pragma warning disable 649
-
     [SerializeField]
-    private string VID, PID, friendlyName;
-
+    private string VID, PID;
     #pragma warning restore 649
 
     public string AutodetectScannerPort()
     {
-        List<string> comports = new List<string>();
-        RegistryKey rk1 = Registry.LocalMachine;
-        RegistryKey rk2 = rk1.OpenSubKey("SYSTEM\\CurrentControlSet\\Enum\\USB\\VID_" + VID + "&PID_" + PID);
-        string temp;
-        foreach (string s2 in rk2.GetSubKeyNames())
+        List<string> comPorts = new List<string>();
+        RegistryKey baseKey = Registry.LocalMachine.OpenSubKey("SYSTEM\\CurrentControlSet\\Enum\\USB\\VID_" + VID + "&PID_" + PID);
+
+        foreach (string subKey in baseKey.GetSubKeyNames())
         {
-            RegistryKey rk3 = rk2.OpenSubKey(s2);
-            if ((temp = (string)rk3.GetValue("FriendlyName")) != null/* && temp.Contains(friendlyName)*/)
+            RegistryKey paramKey = baseKey.OpenSubKey(subKey).OpenSubKey("Device Parameters");
+            if (paramKey != null)
             {
-                RegistryKey rk4 = rk3.OpenSubKey("Device Parameters");
-                if (rk4 != null && (temp = (string)rk4.GetValue("PortName")) != null)
-                {
-                    comports.Add(temp);
-                }
+                string tmpPort = (string)paramKey.GetValue("PortName");
+
+                if(tmpPort != null)
+                    comPorts.Add(tmpPort);
             }
         }
-        if (comports.Count > 0)
-        {
+
+        if (comPorts.Count > 0)
             foreach (string s in SerialPort.GetPortNames())
-            {
-                if (comports.Contains(s))
-                {
+                if (comPorts.Contains(s))
                     return s;
-                }
-            }
-        }
+
         return null;
     }
 }

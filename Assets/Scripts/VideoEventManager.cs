@@ -26,7 +26,7 @@ public class VideoEventManager : MonoBehaviour
                 break;
 
             case MediaPlayerEvent.EventType.FinishedPlaying:
-                manager.videoIsFinished();
+                //manager.videoIsFinished();
                 break;
 
             default:
