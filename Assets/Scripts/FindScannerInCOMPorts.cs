@@ -22,7 +22,7 @@ public class FindScannerInCOMPorts : MonoBehaviour
         foreach (string s2 in rk2.GetSubKeyNames())
         {
             RegistryKey rk3 = rk2.OpenSubKey(s2);
-            if ((temp = (string)rk3.GetValue("FriendlyName")) != null && temp.Contains(friendlyName))
+            if ((temp = (string)rk3.GetValue("FriendlyName")) != null/* && temp.Contains(friendlyName)*/)
             {
                 RegistryKey rk4 = rk3.OpenSubKey("Device Parameters");
                 if (rk4 != null && (temp = (string)rk4.GetValue("PortName")) != null)

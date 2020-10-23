@@ -1,0 +1,40 @@
+Utilizzo generale:
+
+Copiare in questa cartella i video da utilizzare, seguendo il formato di
+denominazione descritto in seguito.
+
+Due modalità di utilizzo:
+1. Un video "idle" viene riprodotto in loop e quando un qr viene rilevato
+viene sostituito dal video corrispondente, fino a che il qr non viene
+rimosso. Quindi il video "idle" riprende il loop.
+2. Lo schermo rimane nero fino a che non viene rilevato un qr. A quel punto
+il video corrispondente viene riprodotto fino a che il qr non viene rimosso.
+Quindi lo schermo torna nero.
+
+-----------------------------------------------------------------------------
+
+Formato denominazione video:
+
+Il nome del video è formato da tre parti, separate da due divisori:
+1. Sezione QR/LOOP - all'inizio del nome del file, è composto da solo e
+soltanto valori numerici (che stanno a rappresentare il codice del qr
+necessario ad avviare il video nel player) oppure dalla parola "LOOP"
+(case-insensitive) nel caso si voglia utilizzare la prima modalità del
+player. Viene seguito da un carattere '_' (underscore) per segnalare il 
+termine della prima sezione.
+2. Sezione Nome - nome del video, non ha un vero e proprio utilizzo nel
+player e può contenere numeri, lettere, e spazi. Non sono ammessi simboli.
+Viene seguito da un '.' (punto) per segnalare il termine della sezione.
+3. Sezione Estensione - estensione del video. Case-insensitive. Formati
+supportati: mp4, mov, mkv, avi, webm.
+
+-----------------------------------------------------------------------------
+
+Esempi:
+
+000001203_mio vi   Deo.mKv   --> corretto - qr per avviare questo video: 1203
+a1_video.mp4                 --> sbagliato, a1 non è un numero
+1-video.mp4                  --> sbagliato, separatore '-' non riconosciuto
+12_Video-loop.avi            --> sbagliato, simbolo in sezione nome
+
+

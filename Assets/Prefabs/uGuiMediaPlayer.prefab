@@ -91,6 +91,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_VideoLocation: 2
   m_VideoPath: 
+  m_Idle: 0
   m_AutoOpen: 0
   m_AutoStart: 0
   m_Loop: 0

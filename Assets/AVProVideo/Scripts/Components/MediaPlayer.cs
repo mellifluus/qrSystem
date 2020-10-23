@@ -40,7 +40,7 @@ namespace RenderHeads.Media.AVProVideo
 		public FileLocation m_VideoLocation = FileLocation.RelativeToStreamingAssetsFolder;
 
 		public string m_VideoPath;
-		public bool isFirst = false;
+		public bool m_Idle = false;
 		public bool m_AutoOpen = true;
 		public bool m_AutoStart = true;
 		public bool m_Loop = false;

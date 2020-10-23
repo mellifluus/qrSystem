@@ -15,20 +15,22 @@ public class VideoManager : MonoBehaviour
 
     #pragma warning restore 649
 
-    private Regex fileNameRegex = new Regex(@"^\d+_[a-z0-9\s]+\.(?:mp4|avi|mov|webm|mkv)$", RegexOptions.IgnoreCase);
+    private Regex videoRegex = new Regex(@"^\d+_[a-z0-9\s]+\.(?:mp4|avi|mov|webm|mkv)$", RegexOptions.IgnoreCase);
+    private Regex loopRegex = new Regex(@"^loop_[a-z0-9\s]+\.(?:mp4|avi|mov|webm|mkv)$", RegexOptions.IgnoreCase);
     private Dictionary<int, MediaPlayer> videos = new Dictionary<int, MediaPlayer>();
-    private int currentlyPlaying, idleQR;
+    private int currentlyPlaying = -1;
     private BarcodeScanner scanner;
 
     private void Awake() 
     {
         scanner = GameObject.Find("BarcodeScanner").GetComponent<BarcodeScanner>();
         initVideos(); 
+        debugLoaded();
     }
 
     private void Update() 
     {
-        if(currentlyPlaying != scanner.currentQR && scanner.currentQR != idleQR)
+        if(currentlyPlaying != scanner.currentQR && scanner.currentQR != -1)
             swapVideos(currentlyPlaying, scanner.currentQR);
     }
 
@@ -36,27 +38,34 @@ public class VideoManager : MonoBehaviour
     {  
         List<string> fileNames = (from file in new DirectoryInfo(Application.streamingAssetsPath).GetFiles() select file.Name).ToList();
 
+        foreach(string file in fileNames)
+        {
+            if(loopRegex.IsMatch(file))
+            {
+                GameObject currentObject = Instantiate(videoPrefab, gameObject.transform);
+                MediaPlayer currentPlayer = currentObject.GetComponent<MediaPlayer>();
+                currentPlayer.m_Idle = true;
+                videos.Add(-1, currentPlayer);
+                currentObject.name = "Loop_" + file.Split('_')[1];
+                currentPlayer.Events.AddListener(gameObject.GetComponent<VideoEventManager>().OnVideoEvent);
+                currentPlayer.OpenVideoFromFile(MediaPlayer.FileLocation.RelativeToStreamingAssetsFolder, file, true);
+                break;
+            }
+        }
+
         for(int i = 0; i < fileNames.Count; i++)
         {
-            if(fileNameRegex.IsMatch(fileNames[i]))
+            if(videoRegex.IsMatch(fileNames[i]))
             {
                 List<string> tmpSplit = fileNames[i].Split('_').ToList();
                 if(Int32.TryParse(tmpSplit[0], out int qrValue))
                 {
                     GameObject currentObject = Instantiate(videoPrefab, gameObject.transform);
                     MediaPlayer currentPlayer = currentObject.GetComponent<MediaPlayer>();
-
-                    if(videos.Count == 0)
-                    {
-                        currentPlayer.isFirst = true;
-                        idleQR = qrValue;
-                        currentlyPlaying = idleQR;
-                    }
-
+                    videos.Add(qrValue, currentPlayer);
                     currentObject.name = "VideoPlayer_" + tmpSplit[1];
                     currentPlayer.Events.AddListener(gameObject.GetComponent<VideoEventManager>().OnVideoEvent);
                     currentPlayer.OpenVideoFromFile(MediaPlayer.FileLocation.RelativeToStreamingAssetsFolder, fileNames[i], false);
-                    videos.Add(qrValue, currentPlayer);
                 }       
             } 
         }
@@ -65,17 +74,48 @@ public class VideoManager : MonoBehaviour
     public void videoIsFinished()
     {
         if(scanner.currentQR == currentlyPlaying)
-            videos[currentlyPlaying].Rewind(false);
+        {
+            if(videos.TryGetValue(currentlyPlaying, out MediaPlayer cur))
+                cur.Rewind(false);
+        }    
         else
-            swapVideos(currentlyPlaying, scanner.currentQR);
+        {
+            if(scanner.currentQR != -1)
+                swapVideos(currentlyPlaying, scanner.currentQR);
+            else
+                swapVideos(currentlyPlaying, -1);
+        }
     }
 
     private void swapVideos(int oldVideo, int newVideo)
     {
-        videos[newVideo].gameObject.SetActive(true);
-        videos[oldVideo].Rewind(true);
-        videos[oldVideo].gameObject.SetActive(false);
-        videos[newVideo].Play();
-        currentlyPlaying = newVideo;
+        if(videos.TryGetValue(oldVideo, out MediaPlayer oldM) && videos.TryGetValue(newVideo, out MediaPlayer newM))
+        {
+            newM.gameObject.SetActive(true);
+            oldM.Rewind(true);
+            oldM.gameObject.SetActive(false);
+            newM.Play();
+            currentlyPlaying = newVideo;   
+        }
+        else
+        {
+            Debug.LogError("Old: " + oldVideo + " New: " + newVideo + " ERROR");
+        } 
+    }
+
+    private void debugLoaded()
+    {
+        Debug.LogWarning("Initialized videos:");
+        foreach(KeyValuePair<int, MediaPlayer> t in videos)
+        {
+            if(t.Key == -1)
+            {
+                Debug.LogWarning("IDLE: " + t.Value.gameObject.name.Split('_')[1]);
+            }
+            else
+            {
+                Debug.LogWarning("QRValue: " + t.Key + " VideoName: " + t.Value.gameObject.name.Split('_')[1]);
+            }
+        }
     }
 }

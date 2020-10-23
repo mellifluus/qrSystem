@@ -21,6 +21,8 @@ public class BarcodeScanner : MonoBehaviour
 
     private void Start()
     {
+        currentQR = -1;
+
         barcodeStream = new SerialPort(gameObject.GetComponent<FindScannerInCOMPorts>().AutodetectScannerPort(), 115200, Parity.None, 8, StopBits.One);
         barcodeStream.ReadTimeout = timeoutMS;
         barcodeStream.Open();
@@ -53,11 +55,10 @@ public class BarcodeScanner : MonoBehaviour
 
                 if(Int32.TryParse(strippedQR, out int tmpQR))
                 {
-                    //check that tmpQR is in dict
                     if(tmpQR != currentQR)
                     {
                         currentQR = tmpQR;
-                        Debug.Log("Detected QR: " + currentQR + ".");
+                        //Debug.Log("Detected QR: " + currentQR + ".");
                     }
                 }
             }
@@ -65,10 +66,10 @@ public class BarcodeScanner : MonoBehaviour
             {
                 if(e is TimeoutException)
                 {
-                    if(currentQR != 0)
+                    if(currentQR != -1)
                     {
-                        currentQR = 0;
-                        Debug.Log("QR removed.");
+                        currentQR = -1;
+                        //Debug.Log("QR removed.");
                     }
                 }
                 else if(e is ThreadAbortException)
