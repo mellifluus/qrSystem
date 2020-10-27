@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Collections.Generic;
+using System.Collections;
 using RenderHeads.Media.AVProVideo;
 
 public class VideoManager : MonoBehaviour
@@ -20,6 +21,7 @@ public class VideoManager : MonoBehaviour
     private Dictionary<int, MediaPlayer> videos = new Dictionary<int, MediaPlayer>();
     private int currentlyPlaying = -1;
     private bool loopMode = false;
+    private bool ready = false;
     private BarcodeScanner scanner;
 
     private void Awake() 
@@ -32,9 +34,16 @@ public class VideoManager : MonoBehaviour
 
     private void Update() 
     {
-        // if(currentlyPlaying != scanner.currentQR && scanner.currentQR != -1)
-        if(currentlyPlaying != scanner.currentQR)
+        if(currentlyPlaying != scanner.currentQR && ready)
+        {
+            if(scanner.currentQR == 99)
+            {
+                Application.Quit();
+                return;
+            }
             swapVideos(currentlyPlaying, scanner.currentQR);
+        }
+            
     }
 
     private void initVideos()
@@ -76,6 +85,7 @@ public class VideoManager : MonoBehaviour
                 }       
             } 
         }
+        StartCoroutine(WaitForLoaded());
     }
 
     public void videoIsFinished()
@@ -131,5 +141,23 @@ public class VideoManager : MonoBehaviour
                 Debug.LogWarning("QRValue: " + t.Key + " VideoName: " + t.Value.gameObject.name.Split('_')[1]);
             }
         }
+    }
+
+    private IEnumerator WaitForLoaded()
+    {
+        bool videosReady = false;
+        do
+        {
+            yield return null;
+            int count = 0;
+            foreach(Transform child in transform)
+                if(child.gameObject.activeInHierarchy)
+                    count++;
+
+            if(count <= 1)
+                videosReady = true;
+        }while(!videosReady);
+        yield return null;
+        ready = true;
     }
 }

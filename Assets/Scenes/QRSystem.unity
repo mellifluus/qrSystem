@@ -330,7 +330,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   videoPrefab: {fileID: 2713255810947461606, guid: ae04ff5c7d8950942aaccf0c8a4902bc,
     type: 3}
-  qrValues: 
 --- !u!1 &1841017785
 GameObject:
   m_ObjectHideFlags: 0
@@ -391,7 +390,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   VID: 0525
   PID: A4A7
-  friendlyName: ELMO
 --- !u!1 &2096835923
 GameObject:
   m_ObjectHideFlags: 0
