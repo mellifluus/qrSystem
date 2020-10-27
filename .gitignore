@@ -54,9 +54,7 @@ sysinfo.txt
 # Builds
 *.apk
 *.unitypackage
+QrSystem*
 
 # Crashlytics generated file
 crashlytics-build.properties
-
-#Builds
-QrSystem*
